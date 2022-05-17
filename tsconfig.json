@@ -1,5 +1,4 @@
 {
-    "version": "3.5",
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
@@ -15,6 +14,8 @@
         "declaration": true,
         "sourceMap": true,
         "suppressImplicitAnyIndexErrors": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "typeRoots": [
             "./node_modules/@types"
         ],

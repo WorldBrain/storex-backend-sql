@@ -30,6 +30,7 @@
         "url": "https://github.com/WorldBrain/storex-backend-sql.git"
     },
     "dependencies": {
+        "lodash": "^4.17.21"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.5.0",
