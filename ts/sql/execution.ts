@@ -1,8 +1,9 @@
+import isPlainObject from 'lodash/isPlainObject'
 import { CollectionDefinition } from '@worldbrain/storex'
 import { StorageResultTreeNode } from '../types'
 import { StorageCollectionsDefinition } from '../types/storage-collections'
 import { StorageOperation } from '../types/storage-operations'
-import { timestampToISO } from '../utils'
+import { isoToDate, timestampToISO } from '../utils'
 import { isChildOfRelation, isConnectsRelation } from '../utils'
 import { renderSqlAst, SqlRenderNodes } from './ast'
 import {
@@ -17,6 +18,11 @@ export function getSqlFieldTypes(
     dbCapabilities: DatabaseCapabilties,
 ): SqlSchemaUpdateOptions['fieldTypes'] {
     return {
+        datetime: dbCapabilities.datetimeFields ? 'DATETIME' : 'TEXT',
+        boolean: 'INTEGER',
+        text: 'TEXT',
+        int: 'INTEGER',
+        float: 'REAL',
         string: 'TEXT',
         timestamp: dbCapabilities.datetimeFields ? 'DATETIME' : 'TEXT',
         json: dbCapabilities.jsonFields ? 'JSON' : 'TEXT',
@@ -60,6 +66,16 @@ export function getOperationTransformationOptions(
             return getFieldNames(collectionDefinition)
         },
         getStoredForeignKeyName: (source) => `${source}Id`,
+        getFieldType: (collectionName, fieldName) => {
+            const collectionDefinition = storageCollections[collectionName]
+            const fieldDefinition = collectionDefinition.fields[fieldName]
+            if (!fieldDefinition) {
+                throw new Error(
+                    `No such field in collection '${collectionName}': ${fieldName}`,
+                )
+            }
+            return fieldDefinition.type
+        },
     }
 }
 
@@ -80,7 +96,7 @@ export function getTransformResultValue(
         if (fieldDefinition.type === 'timestamp') {
             const dateObject = dbCapabilities.datetimeFields
                 ? value
-                : new Date(value)
+                : isoToDate(value)
             return dateObject.getTime()
         }
         if (fieldDefinition.type === 'json' && !dbCapabilities.jsonFields) {
@@ -129,7 +145,7 @@ export function prepareStorageOperation(
         operation.operation === 'findObjects'
     ) {
         for (const [lhs, rhs] of Object.entries(operation.where)) {
-            if (!(typeof rhs === 'string') || rhs.charAt(0) !== '$') {
+            if (!isPlainObject(rhs)) {
                 operation.where[lhs] = { $eq: rhs as any }
             }
         }

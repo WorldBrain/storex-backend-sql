@@ -5,6 +5,7 @@ import {
     QueryRelation,
     StorageOperation,
 } from '../types/storage-operations'
+import { dateToISO, timestampToISO } from '../utils'
 import {
     SqlBinaryOp,
     SqlEqualNode,
@@ -19,11 +20,13 @@ import {
     SqlWhereNode,
     SqlAst,
     SqlValueNode,
+    SqlIdentifierNode,
 } from './ast-types'
 
 export interface OperationTransformOptions {
     getFieldNames(collectionName: string): string[]
     getPkField(collectionName: string): string
+    getFieldType(collectionName: string, fieldName: string): string
     getStoredForeignKeyName(
         sourceCollection: string,
         relationName: string,
@@ -39,6 +42,7 @@ export interface TransformedSqlOperation {
 }
 
 interface OperationTransformContext {
+    getFieldType(collectionName: string, fieldName: string): string
     placeholdersGenerated: number
     placeholdersByName: { [name: string]: { position: number; name: string } }
     placeholders: TransformedSqlOperation['placeholders']
@@ -67,6 +71,7 @@ export function transformOperationTemplate(
     options: OperationTransformOptions,
 ): TransformedSqlOperation {
     const context: OperationTransformContext = {
+        getFieldType: options.getFieldType,
         placeholdersGenerated: 0,
         placeholdersByName: {},
         placeholders: [],
@@ -92,7 +97,7 @@ export function transformOperationTemplate(
     const setWhere = (
         target: { where?: SqlWhereNode },
         operation: { where?: any },
-        options?: WhereTransformationOptions,
+        options: WhereTransformationOptions,
     ) => {
         if (operation.where && Object.keys(operation.where).length) {
             target.where = transformOperationWhere(
@@ -138,7 +143,10 @@ export function transformOperationTemplate(
             tableName: { identifier: operation.collection },
             updates: {},
         }
-        setWhere(update, operation)
+        setWhere(update, operation, {
+            collectionName: operation.collection,
+            hasRelations: false,
+        })
         setValues(update.updates, operation.collection, operation.updates)
         return {
             sqlAst: [{ update }],
@@ -271,7 +279,7 @@ function getSelectJoins(
 function transformOperationWhere(
     whereNode: any,
     context: OperationTransformContext,
-    options?: WhereTransformationOptions,
+    options: WhereTransformationOptions,
 ): SqlWhereNode {
     const getSourceFromShorthand = (shorthand: string): SqlSource => {
         const parts = shorthand.split('.')
@@ -301,12 +309,25 @@ function transformOperationWhere(
             if (isPlainObject(value)) {
                 const childKeys = Object.keys(value)
                 if (childKeys.length === 1) {
+                    const source = getSourceFromShorthand(key)
+                    const sourceFieldType = context.getFieldType(
+                        source.tableName?.identifier ?? options?.collectionName,
+                        (source.fieldName as SqlIdentifierNode)!.identifier,
+                    )
+
                     const childKey = childKeys[0]
-                    const op = childKey.substr(1)
-                    const childValue = value[childKey]
+                    const op = childKey.substring(1)
+
+                    let childValue = value[childKey]
+                    if (sourceFieldType === 'timestamp') {
+                        childValue = timestampToISO(childValue)
+                    } else if (sourceFieldType === 'datetime') {
+                        childValue = dateToISO(childValue)
+                    }
+
                     const transformed: SqlBinaryOp<any> = {
                         [op]: [
-                            { source: getSourceFromShorthand(key) },
+                            { source: source },
                             transformOperationWhere(
                                 childValue,
                                 context,
@@ -338,7 +359,7 @@ function transformOperationWhere(
             }
         }
     } else if (typeof whereNode === 'string' && whereNode.charAt(0) === '$') {
-        const parts = whereNode.substr(1).split('.')
+        const parts = whereNode.substring(1).split('.')
         if (parts.length <= 2) {
             const sourceNode: SqlSourceNode = {
                 source: {

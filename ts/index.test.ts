@@ -13,7 +13,8 @@ import {
     renderTestLiteralNode,
     SqlRenderNodes,
 } from './sql/ast'
-import { ExecuteOperationDatabase } from './sql/execution'
+import { ExecuteOperationDatabase, getSqlFieldTypes } from './sql/execution'
+import { DatabaseCapabilties } from './sql/types'
 
 if (process.env.SKIP_SQLITE_TESTS !== 'true') {
     describe('SQL StorageBackend integration tests with SQLite3', () => {
@@ -40,12 +41,13 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
                 placeholder: (node) => [[0, `:${node.placeholder.name}`]],
                 foreignKey: renderForeignKeyNode({ withConstraint: false }),
             }
+            const dbCapabilties: DatabaseCapabilties = {
+                datetimeFields: false,
+                jsonFields: false,
+            }
             return new SqlStorageBackend({
                 database,
-                dbCapabilities: {
-                    datetimeFields: false,
-                    jsonFields: false,
-                },
+                dbCapabilities: dbCapabilties,
                 sqlRenderNodes,
                 onConfigure: ({ registry }) => {
                     registry.on('initialized', async () => {
@@ -57,12 +59,7 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
                                 type: 'INTEGER',
                                 flags: ['PRIMARY KEY'],
                             },
-                            fieldTypes: {
-                                datetime: 'DATETIME',
-                                string: 'TEXT',
-                                boolean: 'INTEGER',
-                                text: 'TEXT',
-                            },
+                            fieldTypes: getSqlFieldTypes(dbCapabilties),
                         })
                         const sql = renderSqlAst({
                             ast,
