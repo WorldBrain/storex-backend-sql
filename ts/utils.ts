@@ -1,21 +1,16 @@
-import {
-  StorageCollectionDefinition,
-  ChildOfRelationDefinition,
-  ConnectsRelationDefinition,
-  SingleChildOfRelationDefinition,
-  RelationDefinition,
-} from "./types/storage-collections";
+import { CollectionDefinition, ConnectsRelationship, isRelationshipReference, MultipleChildOfRelationship, Relationship, SingleChildOfRelationship } from "@worldbrain/storex";
+import { StorageCollectionsDefinition } from "./types/storage-collections";
 
 interface ChildRelationPointer {
   collectionName: string;
   multi: boolean;
-  relation: SingleChildOfRelationDefinition | ChildOfRelationDefinition;
+  relation: SingleChildOfRelationship | MultipleChildOfRelationship;
 }
 
 interface ConnectionRelationPointer {
   collectionName: string;
   multi: boolean;
-  relation: ConnectsRelationDefinition;
+  relation: ConnectsRelationship;
   connectionIndex: number;
 }
 
@@ -26,7 +21,7 @@ export enum RelationDirection {
 }
 
 export function getReverseRelationDefinitions(
-  storageCollectionDefinitions: { [name: string]: StorageCollectionDefinition },
+  storageCollectionDefinitions: StorageCollectionsDefinition,
   targetCollectionName: string
 ) {
   const reveseRelations: {
@@ -40,7 +35,7 @@ export function getReverseRelationDefinitions(
   };
 
   for (const [collectionName, collectionDefinition] of Object.entries(storageCollectionDefinitions)) {
-    for (const relation of collectionDefinition.relations ?? []) {
+    for (const relation of collectionDefinition.relationships ?? []) {
       if ("childOf" in relation && relation.childOf === targetCollectionName) {
         addRelation(collectionName, {
           collectionName,
@@ -93,12 +88,12 @@ export function getRelationAlias(pointer: RelationPointer, direction: RelationDi
 }
 
 export function isChildOfRelation(
-  relation: RelationDefinition
-): relation is ChildOfRelationDefinition | SingleChildOfRelationDefinition {
+  relation: Relationship
+): relation is MultipleChildOfRelationship | SingleChildOfRelationship {
   return !isConnectsRelation(relation);
 }
 
-export function isConnectsRelation(relation: RelationDefinition): relation is ConnectsRelationDefinition {
+export function isConnectsRelation(relation: Relationship): relation is ConnectsRelationship {
   return "connects" in relation;
 }
 
@@ -106,15 +101,21 @@ export function isConnectionPointer(pointer: RelationPointer): pointer is Connec
   return isConnectsRelation(pointer.relation);
 }
 
-export function getObjectPk(collectionDefinition: StorageCollectionDefinition, object: any) {
+export function getObjectPk(collectionDefinition: CollectionDefinition, object: any) {
   const pkField = getPkField(collectionDefinition);
   return object[pkField];
 }
 
-export function getPkField(collectionDefinition: StorageCollectionDefinition) {
+export function getPkField(collectionDefinition: CollectionDefinition) {
   for (const index of collectionDefinition.indices ?? []) {
     if (index.pk) {
-      return typeof index.field === "string" ? index.field : index.field.relation;
+      if (typeof index.field === "string") {
+        return index.field
+      }
+      if (isRelationshipReference(index.field)) {
+        return index.field.relationship
+      }
+      throw new Error(`Compound primary keys are not implemented in SQL backend (yet)`)
     }
   }
   return "id";

@@ -3,7 +3,7 @@ import isNumber from "lodash/isNumber";
 import isString from "lodash/isString";
 import isPlainObject from "lodash/isPlainObject";
 import find from "lodash/find";
-import { ObjectPath } from "../../user-logic/utils";
+import { ObjectPath } from "../types";
 
 export type DifferContext = { getDiffer?: DifferSelector; path: ObjectPath };
 export type Differ<T = any> = (lhs: T, rhs: T, context: DifferContext) => any;

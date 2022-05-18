@@ -263,7 +263,7 @@ function transformOperationWhere(
 
       const [isPlaceholder, placeholder] = allowPlaceholder(context, whereNode);
       if (isPlaceholder) {
-        return placeholder;
+        return placeholder as any;
       }
     } else {
       return {

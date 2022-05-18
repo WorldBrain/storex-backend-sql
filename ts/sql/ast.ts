@@ -1,5 +1,5 @@
 import { isPlainObject, last } from "lodash";
-import { timestampToISO } from "../../utils";
+import { timestampToISO } from "../utils";
 import type * as astTypes from "./ast-types";
 
 export type SqlRenderNode<NodeType = any> = (node: NodeType, context: SqlRenderNodeContext) => Array<SqlRenderableLine>;
@@ -201,8 +201,8 @@ export const renderForeignKeyNode = (options: { withConstraint: boolean }) => {
     }
     lines.push(
       `FOREIGN KEY (${foreignKey.sourceFieldName}) ` +
-        `REFERENCES ${foreignKey.targetTableName} ` +
-        `(${foreignKey.targetFieldName})`
+      `REFERENCES ${foreignKey.targetTableName} ` +
+      `(${foreignKey.targetFieldName})`
     );
     if (foreignKey.onUpdate) {
       lines.push(`ON UPDATE ${foreignKey.onUpdate}`);

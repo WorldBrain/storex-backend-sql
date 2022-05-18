@@ -1,9 +1,9 @@
-import { FieldDefinition, StorageCollectionDefinition } from "../types/storage-collections";
+import { CollectionDefinition, CollectionField } from "@worldbrain/storex";
 
 export type Identifiers<Indentifier> = Array<Indentifier>;
 
 export interface SchemaDiff {
-  collections: ComplexDiff<CollectionDiff, string, { [name: string]: StorageCollectionDefinition }>;
+  collections: ComplexDiff<CollectionDiff, string, { [name: string]: CollectionDefinition }>;
 }
 export interface Diff<Identifier = string, Additions = Identifiers<Identifier>> {
   added: Additions;
@@ -21,7 +21,7 @@ export interface ComplexDiff<Changes, Identifier = string, Addition = Identifier
 }
 
 export interface CollectionDiff {
-  fields: ComplexDiff<FieldDiff, string, { [name: string]: FieldDefinition }>;
+  fields: ComplexDiff<FieldDiff, string, { [name: string]: CollectionField }>;
   indices: Diff<string>;
   relationships: Diff;
 }

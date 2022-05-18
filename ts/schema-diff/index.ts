@@ -3,8 +3,8 @@ import isString from "lodash/isString";
 import fromPairs from "lodash/fromPairs";
 import mapValues from "lodash/mapValues";
 import { diffObject, defaultDifferSelector, diffStringArray, objectArrayDiffer } from "./diff";
-import { StorageCollectionsDefinition } from "../../types/schema-generated/storage-collections";
-import { ObjectPath } from "../../user-logic/utils";
+import { StorageCollectionsDefinition } from "../types/storage-collections";
+import { ObjectPath } from "../types";
 import { isChildOfRelation } from "../utils";
 import { SchemaDiff } from "./types";
 

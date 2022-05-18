@@ -1,5 +1,4 @@
 import expect from "expect";
-import { StorageCollectionDefinition } from "../types/storage-collections";
 import { expectIndentedEqual } from "../test-utils";
 import { getInitialSchemaDiff } from "../schema-diff";
 import {
@@ -11,20 +10,23 @@ import {
 } from "./ast";
 import { SqlAst } from "./ast-types";
 import { getSqlSchemaUpdates } from "./schema";
+import { StorageCollectionsDefinition } from "../types/storage-collections";
 
 describe("SQL schemas", () => {
   it("should create an initial schema", () => {
-    const collections: { [name: string]: StorageCollectionDefinition } = {
+    const collections: StorageCollectionsDefinition = {
       user: {
+        version: new Date('2020-01-01'),
         fields: {
           displayName: { type: "string" },
         },
       },
       email: {
+        version: new Date('2020-01-01'),
         fields: {
           address: { type: "string" },
         },
-        relations: [{ childOf: "user" }],
+        relationships: [{ childOf: "user" }],
       },
     };
     const initialDiff = getInitialSchemaDiff(collections);

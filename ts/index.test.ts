@@ -1,5 +1,6 @@
 import * as expect from 'expect'
 import * as sqlite3 from 'better-sqlite3'
+import * as pg from 'pg'
 import {
   testStorageBackend,
 } from '@worldbrain/storex/lib/index.tests'
@@ -10,6 +11,11 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
     testStorageBackend(async (context) => {
       context.cleanupFunction = async () => { }
       return new SqlStorageBackend({
+        onConfigure: ({ registry }) => {
+          registry.on('initialized', async () => {
+
+          })
+        }
       })
     })
   })

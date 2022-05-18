@@ -19,7 +19,7 @@ export function getSqlSchemaUpdates(schemaDiff: SchemaDiff, options: SqlSchemaUp
       if (!fieldType) {
         throw new Error(
           `Don't know what type '${fieldDefinition.type}' of field ` +
-            `'${fieldName}' of collection '${collectionName}' translates to in SQL`
+          `'${fieldName}' of collection '${collectionName}' translates to in SQL`
         );
       }
 
@@ -30,7 +30,7 @@ export function getSqlSchemaUpdates(schemaDiff: SchemaDiff, options: SqlSchemaUp
     }
 
     const foreignKeys: SqlForeinKeyNode[] = [];
-    for (const relation of collectionDefinition.relations ?? []) {
+    for (const relation of collectionDefinition.relationships ?? []) {
       if (isChildOfRelation(relation)) {
         const targetCollection = "childOf" in relation ? relation.childOf : relation.singleChildOf;
         const targetAlias = relation.alias ?? `${targetCollection}Id`;

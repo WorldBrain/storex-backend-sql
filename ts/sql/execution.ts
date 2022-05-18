@@ -1,4 +1,5 @@
-import { StorageCollectionDefinition } from "../types/storage-collections";
+import { CollectionDefinition } from "@worldbrain/storex";
+import { StorageCollectionsDefinition } from "../types/storage-collections";
 import { StorageOperation } from "../types/storage-operations";
 import { timestampToISO } from "../utils";
 import { isChildOfRelation, isConnectsRelation } from "../utils";
@@ -16,10 +17,10 @@ export function getSqlFieldTypes(dbCapabilities: DatabaseCapabilties): SqlSchema
   };
 }
 
-export function getFieldNames(collectionDefinition: StorageCollectionDefinition) {
+export function getFieldNames(collectionDefinition: CollectionDefinition) {
   const objectFieldNames = Object.keys(collectionDefinition.fields);
   const relationFieldNames: string[] = [];
-  for (const relation of collectionDefinition.relations ?? []) {
+  for (const relation of collectionDefinition.relationships ?? []) {
     if (isChildOfRelation(relation)) {
       relationFieldNames.push(
         relation.alias ?? ("childOf" in relation ? relation.childOf : relation.singleChildOf) + "Id"
@@ -37,7 +38,7 @@ export function getPkField() {
 }
 
 export function getOperationTransformationOptions(
-  storageCollections: { [name: string]: StorageCollectionDefinition }
+  storageCollections: StorageCollectionsDefinition
 ): OperationTransformOptions {
   return {
     getPkField,
@@ -50,7 +51,7 @@ export function getOperationTransformationOptions(
 }
 
 export function getTransformResultValue(
-  storageCollections: { [name: string]: StorageCollectionDefinition },
+  storageCollections: StorageCollectionsDefinition,
   dbCapabilities: DatabaseCapabilties
 ) {
   const transform: ResultsetTransformOptions["transformFieldValue"] = (value, fieldName, collectionName) => {
@@ -73,7 +74,7 @@ export function getTransformResultValue(
 
 export function prepareObjectForWrite(
   object: any,
-  fields: StorageCollectionDefinition["fields"],
+  fields: CollectionDefinition["fields"],
   options: DatabaseCapabilties
 ) {
   for (const [fieldName, fieldDefinition] of Object.entries(fields)) {
@@ -91,7 +92,7 @@ export function prepareObjectForWrite(
 
 export function prepareStorageOperation(
   operation: StorageOperation,
-  storageCollections: { [name: string]: StorageCollectionDefinition },
+  storageCollections: StorageCollectionsDefinition,
   dbCapabilities: DatabaseCapabilties
 ) {
   if (operation.operation == "createObject") {
@@ -107,7 +108,7 @@ export async function executeOperation(
     run(sql: string): { lastInsertRowId: number },
     all(sql: string): any[]
   },
-  storageCollections: { [name: string]: StorageCollectionDefinition },
+  storageCollections: StorageCollectionsDefinition,
   dbCapabilities: DatabaseCapabilties,
   sqlNodes: SqlRenderNodes
 ) {
