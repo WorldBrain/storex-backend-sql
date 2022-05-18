@@ -1,153 +1,154 @@
 export type StorageOperation =
-  | CreateObjectOperation
-  | CreateObjectsOperation
-  | FindObjectOperation
-  | FindObjectsOperation
-  | UpdateObjectOperation
-  | UpdateObjectsOperation
-  | DeleteObjectOperation
-  | DeleteObjectsOperation
-  | CountObjectsOperation
-  | ExecuteBatchOperation;
+    | CreateObjectOperation
+    | CreateObjectsOperation
+    | FindObjectOperation
+    | FindObjectsOperation
+    | UpdateObjectOperation
+    | UpdateObjectsOperation
+    | DeleteObjectOperation
+    | DeleteObjectsOperation
+    | CountObjectsOperation
+    | ExecuteBatchOperation
 export type OperationWhereValue =
-  | EqOperator
-  | NeOperator
-  | InOperator
-  | NinOperator
-  | GeOperator
-  | GtOperator
-  | LeOperator
-  | LtOperator;
-export type ComparisonRhs = string | number | boolean | QueryPlaceholder;
-export type OrderPair = unknown[];
-export type QueryRelations = QueryRelation[];
-export type OperationInBatch = CreateObjectInBatch | DeleteObjectsByPkInBatch;
-export type OperationBatch = OperationInBatch[];
+    | ComparisonRhs
+    | EqOperator
+    | NeOperator
+    | InOperator
+    | NinOperator
+    | GeOperator
+    | GtOperator
+    | LeOperator
+    | LtOperator
+export type ComparisonRhs = string | number | boolean | QueryPlaceholder
+export type OrderPair = unknown[]
+export type QueryRelations = QueryRelation[]
+export type OperationInBatch = CreateObjectInBatch | DeleteObjectsByPkInBatch
+export type OperationBatch = OperationInBatch[]
 
 export interface StorageOperations {
-  storageOperation?: StorageOperation;
-  [k: string]: unknown;
+    storageOperation?: StorageOperation
+    [k: string]: unknown
 }
 export interface CreateObjectOperation {
-  operation: "createObject";
-  collection: string;
-  object: {
-    [k: string]: unknown;
-  };
+    operation: 'createObject'
+    collection: string
+    object: {
+        [k: string]: unknown
+    }
 }
 export interface CreateObjectsOperation {
-  operation: "createObjects";
-  collection: string;
-  objects: {
-    [k: string]: unknown;
-  }[];
+    operation: 'createObjects'
+    collection: string
+    objects: {
+        [k: string]: unknown
+    }[]
 }
 export interface FindObjectOperation {
-  operation: "findObject";
-  collection: string;
-  where: OperationWhere;
-  limit?: {
-    [k: string]: unknown;
-  };
-  order?: OrderPair[];
-  relations?: QueryRelations;
+    operation: 'findObject'
+    collection: string
+    where: OperationWhere
+    limit?: {
+        [k: string]: unknown
+    }
+    order?: OrderPair[]
+    relations?: QueryRelations
 }
 export interface OperationWhere {
-  [k: string]: OperationWhereValue;
+    [k: string]: OperationWhereValue
 }
 export interface EqOperator {
-  $eq: ComparisonRhs;
+    $eq: ComparisonRhs
 }
 export interface QueryPlaceholder {
-  $placeholder: string;
+    $placeholder: string
 }
 export interface NeOperator {
-  $ne: ComparisonRhs;
+    $ne: ComparisonRhs
 }
 export interface InOperator {
-  $in: ComparisonRhs;
+    $in: ComparisonRhs
 }
 export interface NinOperator {
-  $ni: ComparisonRhs;
+    $ni: ComparisonRhs
 }
 export interface GeOperator {
-  $ge: ComparisonRhs;
+    $ge: ComparisonRhs
 }
 export interface GtOperator {
-  $gt: ComparisonRhs;
+    $gt: ComparisonRhs
 }
 export interface LeOperator {
-  $le: ComparisonRhs;
+    $le: ComparisonRhs
 }
 export interface LtOperator {
-  $lt: ComparisonRhs;
+    $lt: ComparisonRhs
 }
 export interface QueryRelation {
-  relation: string;
-  alias?: string;
-  where?: OperationWhere;
-  fetch?: boolean;
-  relations?: QueryRelations;
+    relation: string
+    alias?: string
+    where?: OperationWhere
+    fetch?: boolean
+    relations?: QueryRelations
 }
 export interface FindObjectsOperation {
-  operation: "findObjects";
-  collection: string;
-  where: OperationWhere;
-  order?: OrderPair[];
-  relations?: QueryRelations;
+    operation: 'findObjects'
+    collection: string
+    where: OperationWhere
+    order?: OrderPair[]
+    relations?: QueryRelations
 }
 export interface UpdateObjectOperation {
-  operation: "updateObject";
-  collection: string;
-  where: OperationWhere;
-  updates: {
-    [k: string]: unknown;
-  };
+    operation: 'updateObject'
+    collection: string
+    where: OperationWhere
+    updates: {
+        [k: string]: unknown
+    }
 }
 export interface UpdateObjectsOperation {
-  operation: "updateObjects";
-  collection: string;
-  where: OperationWhere;
-  updates: {
-    [k: string]: unknown;
-  };
+    operation: 'updateObjects'
+    collection: string
+    where: OperationWhere
+    updates: {
+        [k: string]: unknown
+    }
 }
 export interface DeleteObjectOperation {
-  operation: "deleteObject";
-  collection: string;
-  where: OperationWhere;
+    operation: 'deleteObject'
+    collection: string
+    where: OperationWhere
 }
 export interface DeleteObjectsOperation {
-  operation: "deleteObjects";
-  collection: string;
-  where: OperationWhere;
+    operation: 'deleteObjects'
+    collection: string
+    where: OperationWhere
 }
 export interface CountObjectsOperation {
-  operation: "countObjects";
-  collection: string;
-  where: OperationWhere;
+    operation: 'countObjects'
+    collection: string
+    where: OperationWhere
 }
 export interface ExecuteBatchOperation {
-  operation: "executeBatch";
-  batch: OperationBatch;
+    operation: 'executeBatch'
+    batch: OperationBatch
 }
 export interface CreateObjectInBatch {
-  placeholder?: string;
-  operation: "createObject";
-  collection: string;
-  object?: {
-    [k: string]: unknown;
-  };
-  parents?: {
-    /**
-     * This interface was referenced by `undefined`'s JSON-Schema definition
-     * via the `patternProperty` ".+".
-     */
-    [k: string]: string;
-  };
+    placeholder?: string
+    operation: 'createObject'
+    collection: string
+    object?: {
+        [k: string]: unknown
+    }
+    parents?: {
+        /**
+         * This interface was referenced by `undefined`'s JSON-Schema definition
+         * via the `patternProperty` ".+".
+         */
+        [k: string]: string
+    }
 }
 export interface DeleteObjectsByPkInBatch {
-  operation: "deleteObjects";
-  collection: string;
-  pks?: unknown[];
+    operation: 'deleteObjects'
+    collection: string
+    pks?: unknown[]
 }
