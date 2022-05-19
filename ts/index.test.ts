@@ -2,7 +2,7 @@ import * as expect from 'expect'
 import SQLite3 from 'better-sqlite3'
 import * as pg from 'pg'
 import { testStorageBackend } from '@worldbrain/storex/lib/index.tests'
-import { SqlStorageBackend } from '.'
+import { SqlStorageBackend, SqlStorageBackendOptions } from '.'
 import { getInitialSchemaDiff } from './schema-diff'
 import { getSqlSchemaUpdates } from './sql/schema'
 import {
@@ -23,7 +23,7 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
             const sqlite = SQLite3(':memory:', {
                 // verbose: (...args: any[]) => console.log("SQL:", ...args)
             })
-            const database: ExecuteOperationDatabase = {
+            const database: SqlStorageBackendOptions['database'] = {
                 all: async (sql) => {
                     const statement = sqlite.prepare(sql)
                     return statement.all()
@@ -33,6 +33,15 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
                     const statement = sqlite.prepare(sql)
                     const result = statement.run()
                     return { lastInsertRowId: result.lastInsertRowid }
+                },
+                transaction: async (f) => {
+                    sqlite.exec('BEGIN')
+                    try {
+                        await f()
+                    } catch (e) {
+                        sqlite.exec('ROLLBACK')
+                    }
+                    sqlite.exec('COMMIT')
                 },
             }
             const sqlRenderNodes: SqlRenderNodes = {

@@ -17,7 +17,9 @@ import { getPkField } from './utils'
 export interface SqlStorageBackendOptions {
     onConfigure?(event: { registry: StorageRegistry }): void
     dbCapabilities: DatabaseCapabilties
-    database: ExecuteOperationDatabase
+    database: ExecuteOperationDatabase & {
+        transaction(f: () => Promise<void>): Promise<void>
+    }
     sqlRenderNodes: SqlRenderNodes
 }
 
@@ -61,7 +63,16 @@ export class SqlStorageBackend extends backend.StorageBackend {
             )
         }
 
-        return { objects }
+        const returnedObjects: any[] = []
+        for (const object of objects) {
+            const { object: newObject } = await this.createObject(
+                collection,
+                object,
+            )
+            returnedObjects.push(newObject)
+        }
+
+        return { objects: returnedObjects }
     }
 
     async createObject(
@@ -74,6 +85,13 @@ export class SqlStorageBackend extends backend.StorageBackend {
             throw new Error(
                 `Unknown collection for 'createObject': ${collection}`,
             )
+        }
+        for (const [fieldName, fieldDefinition] of Object.entries(
+            collectionDefinition.fields,
+        )) {
+            if (fieldDefinition.optional && !(fieldName in object)) {
+                object[fieldName] = null
+            }
         }
         const { result } = (await this._dbOperation({
             operation: 'createObject',
@@ -137,7 +155,41 @@ export class SqlStorageBackend extends backend.StorageBackend {
     }
 
     async executeBatch(batch: backend.OperationBatch) {
-        return { info: {} }
+        const info = {}
+        const placeholders = {}
+        await this.options.database.transaction(async () => {
+            for (const operation of batch) {
+                if (operation.operation === 'createObject') {
+                    for (const { path, placeholder } of operation.replace ||
+                        []) {
+                        operation.args[path as string] =
+                            placeholders[placeholder].id
+                    }
+
+                    const { object } = await this.createObject(
+                        operation.collection,
+                        operation.args,
+                    )
+
+                    if (operation.placeholder) {
+                        info[operation.placeholder] = { object }
+                        placeholders[operation.placeholder] = object
+                    }
+                } else if (operation.operation === 'updateObjects') {
+                    await this.updateObjects(
+                        operation.collection,
+                        operation.where,
+                        operation.updates,
+                    )
+                } else if (operation.operation === 'deleteObjects') {
+                    await this.deleteObjects(
+                        operation.collection,
+                        operation.where,
+                    )
+                }
+            }
+        })
+        return { info }
     }
 
     async transaction(options: { collections: string[] }, body: Function) {}

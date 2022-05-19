@@ -224,6 +224,8 @@ export const renderTestLiteralNode: SqlRenderNode<astTypes.SqlLiteralNode> = (
         result = `'${node.literal}'`
     } else if (typeof node.literal === 'number') {
         result = node.literal.toString()
+    } else if (node.literal === null) {
+        result = 'NULL'
     } else {
         result = node.literal ? '1' : '0'
     }
