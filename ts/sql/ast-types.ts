@@ -21,10 +21,17 @@ export interface SqlSelectNode {
     }
 }
 export interface SqlSource {
+    functionCall?: SqlFunctionCallNode['functionCall']
     fieldName?: SqlIdentifierNode | SqlWildcardNode
     tableName?: SqlIdentifierNode
     alias?: SqlIdentifierNode
     aliasType?: 'as' | 'space'
+}
+export interface SqlFunctionCallNode {
+    functionCall: {
+        name: string
+        arguments: Array<SqlSourceNode | SqlLiteralNode>
+    }
 }
 export interface SqlSourceNode {
     source: SqlSource
@@ -64,8 +71,15 @@ export type SqlLessThanNode = SqlBinaryOp<'lt'>
 export type SqlLessEqualNode = SqlBinaryOp<'lte'>
 export type SqlGreaterThanNode = SqlBinaryOp<'gt'>
 export type SqlGreaterEqualNode = SqlBinaryOp<'gte'>
-export type SqlInNode = SqlBinaryOp<'in'>
-export type SqlNotInNode = SqlBinaryOp<'nin'>
+
+export type SqlIn<Op extends 'in' | 'nin'> = {
+    [key in Op]: [
+        SqlSourceNode,
+        Array<SqlSourceNode | SqlValueNode | SqlPlaceholderNode>,
+    ]
+}
+export type SqlInNode = SqlIn<'in'>
+export type SqlNotInNode = SqlIn<'nin'>
 
 export type SqlValueNode = SqlLiteralNode | SqlDateTimeNode | SqlJsonNode
 export interface SqlLiteralNode {
@@ -98,7 +112,7 @@ export interface SqlUpdateNode {
 export interface SqlDeleteNode {
     delete: {
         tableName: SqlIdentifierNode
-        where: SqlWhereNode
+        where?: SqlWhereNode
     }
 }
 

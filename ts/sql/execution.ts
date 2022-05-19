@@ -142,9 +142,12 @@ export function prepareStorageOperation(
         )
     } else if (
         operation.operation === 'findObject' ||
-        operation.operation === 'findObjects'
+        operation.operation === 'findObjects' ||
+        operation.operation === 'updateObjects' ||
+        operation.operation === 'countObjects' ||
+        operation.operation === 'deleteObjects'
     ) {
-        for (const [lhs, rhs] of Object.entries(operation.where)) {
+        for (const [lhs, rhs] of Object.entries(operation.where ?? {})) {
             if (!isPlainObject(rhs)) {
                 operation.where[lhs] = { $eq: rhs as any }
             }
@@ -163,17 +166,30 @@ export type ExecuteOperationResult =
     | CreateObjectResult
     | FindObjectResult
     | FindObjectsResult
+    | CountObjectsResult
+    | UpdateObjectsResult
+    | DeleteObjectsResult
 export interface CreateObjectResult {
     operation: 'createObject'
-    pk: number | bigint
+    result: { pk: number | bigint }
 }
 export interface FindObjectResult {
     operation: 'findObject'
-    node?: StorageResultTreeNode
+    result: StorageResultTreeNode | null
 }
 export interface FindObjectsResult {
     operation: 'findObjects'
-    nodes: StorageResultTreeNode[]
+    result: StorageResultTreeNode[]
+}
+export interface CountObjectsResult {
+    operation: 'countObjects'
+    result: number
+}
+export interface UpdateObjectsResult {
+    operation: 'updateObjects'
+}
+export interface DeleteObjectsResult {
+    operation: 'deleteObjects'
 }
 
 export async function executeOperation(
@@ -196,8 +212,8 @@ export async function executeOperation(
     if (operation.operation === 'createObject') {
         const result = await database.run(sql)
         return {
-            operation: 'createObject',
-            pk: result.lastInsertRowId,
+            operation: operation.operation,
+            result: { pk: result.lastInsertRowId },
         }
     }
     if (
@@ -219,14 +235,33 @@ export async function executeOperation(
         )
         if (operation.operation === 'findObject') {
             return {
-                operation: 'findObject',
-                node: result.length ? result[0] : undefined,
+                operation: operation.operation,
+                result: result.length ? result[0] : null,
             }
         } else {
             return {
-                operation: 'findObjects',
-                nodes: result,
+                operation: operation.operation,
+                result: result,
             }
+        }
+    }
+    if (operation.operation === 'countObjects') {
+        const [{ count }] = await database.all(sql)
+        return {
+            operation: operation.operation,
+            result: count,
+        }
+    }
+    if (operation.operation === 'updateObjects') {
+        await database.run(sql)
+        return {
+            operation: operation.operation,
+        }
+    }
+    if (operation.operation === 'deleteObjects') {
+        await database.run(sql)
+        return {
+            operation: operation.operation,
         }
     }
     throw new Error(

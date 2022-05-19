@@ -29,6 +29,7 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
                     return statement.all()
                 },
                 run: async (sql) => {
+                    // console.log('SQL RUN: ', sql)
                     const statement = sqlite.prepare(sql)
                     const result = statement.run()
                     return { lastInsertRowId: result.lastInsertRowid }

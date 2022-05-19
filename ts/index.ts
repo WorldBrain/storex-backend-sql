@@ -3,6 +3,7 @@ import * as backend from '@worldbrain/storex/lib/types/backend'
 import { StorageBackendFeatureSupport } from '@worldbrain/storex/lib/types/backend-features'
 import { SqlRenderNodes } from './sql/ast'
 import {
+    CountObjectsResult,
     CreateObjectResult,
     executeOperation,
     ExecuteOperationDatabase,
@@ -74,7 +75,7 @@ export class SqlStorageBackend extends backend.StorageBackend {
                 `Unknown collection for 'createObject': ${collection}`,
             )
         }
-        const result = (await this._dbOperation({
+        const { result } = (await this._dbOperation({
             operation: 'createObject',
             collection,
             object,
@@ -85,15 +86,15 @@ export class SqlStorageBackend extends backend.StorageBackend {
 
     async findObjects<T>(
         collection: string,
-        query: any,
+        where: any,
         findOpts: backend.FindManyOptions = {},
     ): Promise<Array<T>> {
-        const result = (await this._dbOperation({
+        const { result } = (await this._dbOperation({
             operation: 'findObjects',
             collection,
-            where: query,
+            where,
         })) as FindObjectsResult
-        return result.nodes.map((node) => node.object)
+        return result.map((node) => node.object)
     }
 
     async *streamObjects<T>(collection: string) {}
@@ -103,16 +104,34 @@ export class SqlStorageBackend extends backend.StorageBackend {
         where: any,
         updates: any,
         options: backend.UpdateManyOptions = {},
-    ): Promise<backend.UpdateManyResult> {}
+    ): Promise<backend.UpdateManyResult> {
+        await this._dbOperation({
+            operation: 'updateObjects',
+            collection,
+            where,
+            updates,
+        })
+    }
 
     async deleteObjects(
         collection: string,
         query: any,
         options: backend.DeleteManyOptions = {},
-    ): Promise<backend.DeleteManyResult> {}
+    ): Promise<backend.DeleteManyResult> {
+        await this._dbOperation({
+            operation: 'deleteObjects',
+            collection,
+            where: query,
+        })
+    }
 
-    async countObjects(collection: string, query: any) {
-        return 0
+    async countObjects(collection: string, where: any) {
+        const { result } = (await this._dbOperation({
+            operation: 'countObjects',
+            collection,
+            where,
+        })) as CountObjectsResult
+        return result
     }
 
     async executeBatch(batch: backend.OperationBatch) {

@@ -58,7 +58,7 @@ export function renderSqlNode(
     })
 }
 
-export const renderInsertNode: SqlRenderNode<astTypes.SqlInsertNode> = (
+export const insert: SqlRenderNode<astTypes.SqlInsertNode> = (
     node,
     context,
 ) => {
@@ -79,7 +79,7 @@ export const renderInsertNode: SqlRenderNode<astTypes.SqlInsertNode> = (
     ]
 }
 
-export const renderSelectNode: SqlRenderNode<astTypes.SqlSelectNode> = (
+export const select: SqlRenderNode<astTypes.SqlSelectNode> = (
     node,
     context,
 ) => {
@@ -102,7 +102,7 @@ export const renderSelectNode: SqlRenderNode<astTypes.SqlSelectNode> = (
     return query
 }
 
-export const renderUpdateNode: SqlRenderNode<astTypes.SqlUpdateNode> = (
+export const update: SqlRenderNode<astTypes.SqlUpdateNode> = (
     node,
     context,
 ) => {
@@ -128,7 +128,7 @@ export const renderDeleteNode: SqlRenderNode<astTypes.SqlDeleteNode> = (
     return maybeWithWhere([[0, content]], node.delete, context)
 }
 
-export const renderSourceNode: SqlRenderNode<astTypes.SqlSourceNode> = (
+export const source: SqlRenderNode<astTypes.SqlSourceNode> = (
     node,
     context,
 ) => {
@@ -143,6 +143,10 @@ export const renderSourceNode: SqlRenderNode<astTypes.SqlSourceNode> = (
         } else {
             fieldStr = tableIdentifier
         }
+    } else if (source.functionCall) {
+        fieldStr = context.renderNodeAsString({
+            functionCall: source.functionCall,
+        })
     }
     if (source.alias) {
         const type = node.source.aliasType ?? 'space'
@@ -156,10 +160,7 @@ export const renderSourceNode: SqlRenderNode<astTypes.SqlSourceNode> = (
     return [[0, fieldStr]]
 }
 
-export const renderJoinNode: SqlRenderNode<astTypes.SqlJoinNode> = (
-    node,
-    context,
-) => {
+export const join: SqlRenderNode<astTypes.SqlJoinNode> = (node, context) => {
     let content = node.join.side ?? ''
     if (node.join.side) {
         content += ' '
@@ -211,9 +212,7 @@ export const renderTestLiteralNode: SqlRenderNode<astTypes.SqlLiteralNode> = (
     return [[0, result]]
 }
 
-export const renderDateTimeNode: SqlRenderNode<astTypes.SqlDateTimeNode> = (
-    node,
-) => {
+export const datetime: SqlRenderNode<astTypes.SqlDateTimeNode> = (node) => {
     return [[0, `'${timestampToISO(node.datetime)}'`]]
 }
 
@@ -227,9 +226,10 @@ function binaryNode(key: string, sqlOp: string) {
     return renderNode
 }
 
-export const renderCreateTableNode: SqlRenderNode<
-    astTypes.SqlCreateTableNode
-> = (node, context) => {
+export const createTable: SqlRenderNode<astTypes.SqlCreateTableNode> = (
+    node,
+    context,
+) => {
     const lines: SqlRenderableLine[] = []
     const numFields = node.createTable.fields.length
     const numForeignKeys = node.createTable.foreignKeys?.length ?? 0
@@ -296,6 +296,21 @@ export const renderForeignKeyNode = (options: { withConstraint: boolean }) => {
     return render
 }
 
+function inNode(key: string, sqlOp: string) {
+    const renderNode: SqlRenderNode<astTypes.SqlIn<'in' | 'nin'>> = (
+        node,
+        context,
+    ) => {
+        const [source, operands] = node[key]
+        const lhs = context.renderNodeAsString(source)
+        const rhs = operands
+            .map((operand: any) => context.renderNodeAsString(operand))
+            .join(`, `)
+        return [[0, `(${lhs} ${sqlOp} (${rhs}))`]]
+    }
+    return renderNode
+}
+
 export function isSqlNodeType<T, U extends keyof T>(
     node: any,
     type: U,
@@ -303,26 +318,35 @@ export function isSqlNodeType<T, U extends keyof T>(
     return isPlainObject(node) && type in node
 }
 
+export const functionCall: SqlRenderNode<astTypes.SqlFunctionCallNode> = (
+    node,
+    context,
+) => {
+    const args = node.functionCall.arguments.map(context.renderNodeAsString)
+    return [[0, `${node.functionCall.name}(${args.join(', ')})`]]
+}
+
 export const DEFAULT_SQL_NODES: Omit<
     SqlRenderNodes,
     'literal' | 'placeholder' | 'identifier'
 > = {
-    insert: renderInsertNode,
-    select: renderSelectNode,
-    update: renderUpdateNode,
+    insert,
+    select,
+    update,
     delete: renderDeleteNode,
-    source: renderSourceNode,
-    join: renderJoinNode,
+    source,
+    join,
     and: binaryNode('and', 'AND'),
     eq: binaryNode('eq', '='),
     ne: binaryNode('ne', '!='),
-    in: binaryNode('in', 'IN'),
-    nin: binaryNode('nin', 'NOT IN'),
+    in: inNode('in', 'IN'),
+    nin: inNode('nin', 'NOT IN'),
     gt: binaryNode('gt', '>'),
     gte: binaryNode('gte', '>='),
     lt: binaryNode('lt', '<'),
     lte: binaryNode('lte', '<='),
-    createTable: renderCreateTableNode,
+    createTable,
     wildcard: () => [[0, '*']],
-    datetime: renderDateTimeNode,
+    datetime,
+    functionCall,
 }

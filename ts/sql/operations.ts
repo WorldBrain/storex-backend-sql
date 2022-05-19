@@ -21,6 +21,7 @@ import {
     SqlAst,
     SqlValueNode,
     SqlIdentifierNode,
+    SqlDeleteNode,
 } from './ast-types'
 
 export interface OperationTransformOptions {
@@ -138,6 +139,35 @@ export function transformOperationTemplate(
             sqlAst: [{ select }],
             placeholders: context.placeholders,
         }
+    } else if (operation.operation === 'countObjects') {
+        const select: SqlSelectNode['select'] = {
+            source: { tableName: { identifier: operation.collection } },
+            fields: [
+                {
+                    source: {
+                        functionCall: {
+                            name: 'COUNT',
+                            arguments: [
+                                {
+                                    source: {
+                                        fieldName: { identifier: 'id' },
+                                    },
+                                },
+                            ],
+                        },
+                        alias: { identifier: 'count' },
+                    },
+                },
+            ],
+        }
+        setWhere(select, operation, {
+            collectionName: operation.collection,
+            hasRelations: false,
+        })
+        return {
+            sqlAst: [{ select }],
+            placeholders: context.placeholders,
+        }
     } else if (operation.operation === 'updateObjects') {
         const update: SqlUpdateNode['update'] = {
             tableName: { identifier: operation.collection },
@@ -150,6 +180,18 @@ export function transformOperationTemplate(
         setValues(update.updates, operation.collection, operation.updates)
         return {
             sqlAst: [{ update }],
+            placeholders: context.placeholders,
+        }
+    } else if (operation.operation === 'deleteObjects') {
+        const deleteNode: SqlDeleteNode['delete'] = {
+            tableName: { identifier: operation.collection },
+        }
+        setWhere(deleteNode, operation, {
+            collectionName: operation.collection,
+            hasRelations: false,
+        })
+        return {
+            sqlAst: [{ delete: deleteNode }],
             placeholders: context.placeholders,
         }
     } else {
@@ -325,17 +367,27 @@ function transformOperationWhere(
                         childValue = dateToISO(childValue)
                     }
 
-                    const transformed: SqlBinaryOp<any> = {
-                        [op]: [
-                            { source: source },
-                            transformOperationWhere(
-                                childValue,
-                                context,
-                                options,
-                            ) as any,
-                        ],
+                    const transformOperand = (operand: any) =>
+                        transformOperationWhere(
+                            operand,
+                            context,
+                            options,
+                        ) as any
+                    if (childValue instanceof Array) {
+                        return {
+                            [op]: [
+                                { source: source },
+                                childValue.map(transformOperand),
+                            ],
+                        } as any
+                    } else {
+                        return {
+                            [op]: [
+                                { source: source },
+                                transformOperand(childValue),
+                            ],
+                        } as any
                     }
-                    return transformed as any
                 }
             }
 
