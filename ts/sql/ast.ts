@@ -9,6 +9,7 @@ export type SqlRenderNode<NodeType = any> = (
 export interface SqlRenderNodes {
     literal: SqlRenderNode<astTypes.SqlLiteralNode>
     identifier: SqlRenderNode<astTypes.SqlIdentifierNode>
+    insert: SqlRenderNode<astTypes.SqlInsertNode>
     [nodeTypes: string]: SqlRenderNode
 }
 export type SqlRenderableLine = [indent: number, content: string]
@@ -58,25 +59,28 @@ export function renderSqlNode(
     })
 }
 
-export const insert: SqlRenderNode<astTypes.SqlInsertNode> = (
-    node,
-    context,
-) => {
-    const tableName = context.renderNodeAsString(node.insert.tableName)
-    const fieldNames = Object.keys(node.insert.values)
-    const fieldList = fieldNames
-        .map((fieldName) =>
-            context.renderNodeAsString({ identifier: fieldName }),
-        )
-        .join(', ')
-    const valuesList = fieldNames
-        .map((fieldName) =>
-            context.renderNodeAsString(node.insert.values[fieldName]),
-        )
-        .join(`, `)
-    return [
-        [0, `INSERT INTO ${tableName} (${fieldList}) VALUES (${valuesList});`],
-    ]
+export const renderInsertNode = (options: { withReturns: boolean }) => {
+    const render: SqlRenderNode<astTypes.SqlInsertNode> = (node, context) => {
+        const tableName = context.renderNodeAsString(node.insert.tableName)
+        const fieldNames = Object.keys(node.insert.values)
+        const fieldList = fieldNames
+            .map((fieldName) =>
+                context.renderNodeAsString({ identifier: fieldName }),
+            )
+            .join(', ')
+        const valuesList = fieldNames
+            .map((fieldName) =>
+                context.renderNodeAsString(node.insert.values[fieldName]),
+            )
+            .join(`, `)
+        return [
+            [
+                0,
+                `INSERT INTO ${tableName} (${fieldList}) VALUES (${valuesList});`,
+            ],
+        ]
+    }
+    return render
 }
 
 export const select: SqlRenderNode<astTypes.SqlSelectNode> = (
@@ -348,9 +352,8 @@ export const functionCall: SqlRenderNode<astTypes.SqlFunctionCallNode> = (
 
 export const DEFAULT_SQL_NODES: Omit<
     SqlRenderNodes,
-    'literal' | 'placeholder' | 'identifier'
+    'literal' | 'placeholder' | 'identifier' | 'insert'
 > = {
-    insert,
     select,
     update,
     delete: renderDeleteNode,

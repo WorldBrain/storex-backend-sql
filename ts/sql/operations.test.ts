@@ -36,6 +36,7 @@ function test(
         ast: actual.sqlAst,
         nodes: {
             ...sqlAst.DEFAULT_SQL_NODES,
+            insert: sqlAst.renderInsertNode({ withReturns: false }),
             identifier: sqlAst.renderTestIdentifierNode,
             literal: sqlAst.renderTestLiteralNode,
             placeholder: (node) => [[0, `:${node.placeholder.name}`]],

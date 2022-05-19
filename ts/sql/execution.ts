@@ -158,7 +158,7 @@ export function prepareStorageOperation(
 
 export interface ExecuteOperationDatabase {
     run(sql: string): Promise<{
-        lastInsertRowId: number | bigint
+        lastInsertRowId?: number | bigint
     }>
     all(sql: string): Promise<any[]>
 }
@@ -213,7 +213,7 @@ export async function executeOperation(
         const result = await database.run(sql)
         return {
             operation: operation.operation,
-            result: { pk: result.lastInsertRowId },
+            result: { pk: result.lastInsertRowId! },
         }
     }
     if (
