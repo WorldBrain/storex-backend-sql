@@ -135,14 +135,17 @@ export function transformOperationTemplate(
             collectionName: operation.collection,
             hasRelations: !!operation.relations?.length,
         })
-        select.order = (operation.order ?? []).map(
-            ([fieldName, direction]) => ({
+        if (operation.order) {
+            select.order = operation.order.map(([fieldName, direction]) => ({
                 source: {
                     fieldName: { identifier: fieldName },
                 },
                 direction: direction === 'asc' ? 'ASC' : 'DESC',
-            }),
-        )
+            }))
+        }
+        if ('limit' in operation && operation.limit) {
+            select.limit = { literal: operation.limit }
+        }
         return {
             sqlAst: [{ select }],
             placeholders: context.placeholders,

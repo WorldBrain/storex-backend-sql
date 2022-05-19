@@ -94,6 +94,7 @@ export class SqlStorageBackend extends backend.StorageBackend {
             collection,
             where,
             order: findOpts.order,
+            limit: findOpts.limit,
         })) as FindObjectsResult
         return result.map((node) => node.object)
     }

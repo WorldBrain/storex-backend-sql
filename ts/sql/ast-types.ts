@@ -22,6 +22,7 @@ export interface SqlSelectNode {
             source: SqlSourceNode['source']
             direction: 'ASC' | 'DESC'
         }>
+        limit?: SqlLiteralNode
     }
 }
 export interface SqlSource {

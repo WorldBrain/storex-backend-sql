@@ -83,24 +83,25 @@ export const select: SqlRenderNode<astTypes.SqlSelectNode> = (
     node,
     context,
 ) => {
-    const fieldList = node.select.fields.map((fieldNode) => {
+    const { select } = node
+    const fieldList = select.fields.map((fieldNode) => {
         const sourceNode: astTypes.SqlSourceNode = {
             source: { ...fieldNode.source, aliasType: 'as' },
         }
         return context.renderNodeAsString(sourceNode)
     })
-    const tableSource: astTypes.SqlSourceNode = { source: node.select.source }
+    const tableSource: astTypes.SqlSourceNode = { source: select.source }
     const tableName = context.renderNodeAsString(tableSource)
     const content = `SELECT ${fieldList.join(', ')} FROM ${tableName}`
-    const query = maybeWithWhere([[0, content]], node.select, context, {
+    const query = maybeWithWhere([[0, content]], select, context, {
         dontTerminate: true,
     })
-    for (const join of node.select.joins ?? []) {
+    for (const join of select.joins ?? []) {
         query.push(...context.renderNode({ join }))
     }
-    if (node.select.order?.length) {
+    if (select.order?.length) {
         const orderedFields: string[] = []
-        for (const { source, direction } of node.select.order ?? []) {
+        for (const { source, direction } of select.order ?? []) {
             if (direction !== 'ASC' && direction !== 'DESC') {
                 throw new Error(
                     `Deteccted invalid ORDER BY direction querying from table '${tableName}'`,
@@ -111,6 +112,9 @@ export const select: SqlRenderNode<astTypes.SqlSelectNode> = (
             )
         }
         query.push([0, `ORDER BY ${orderedFields.join(', ')}`])
+    }
+    if (select.limit) {
+        query.push([0, `LIMIT ${context.renderNodeAsString(select.limit)}`])
     }
     last(query)![1] += ';'
     return query

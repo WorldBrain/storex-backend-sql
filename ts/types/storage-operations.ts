@@ -47,9 +47,6 @@ export interface FindObjectOperation {
     operation: 'findObject'
     collection: string
     where: OperationWhere
-    limit?: {
-        [k: string]: unknown
-    }
     order?: OrderPair[]
     relations?: QueryRelations
 }
@@ -96,6 +93,7 @@ export interface FindObjectsOperation {
     where: OperationWhere
     order?: OrderPair[]
     relations?: QueryRelations
+    limit?: number
 }
 export interface UpdateObjectOperation {
     operation: 'updateObject'
