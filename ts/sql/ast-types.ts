@@ -18,6 +18,10 @@ export interface SqlSelectNode {
         source: SqlSource
         where?: SqlWhereNode
         joins?: Array<SqlJoin>
+        order?: Array<{
+            source: SqlSourceNode['source']
+            direction: 'ASC' | 'DESC'
+        }>
     }
 }
 export interface SqlSource {

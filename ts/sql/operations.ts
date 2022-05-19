@@ -135,6 +135,14 @@ export function transformOperationTemplate(
             collectionName: operation.collection,
             hasRelations: !!operation.relations?.length,
         })
+        select.order = (operation.order ?? []).map(
+            ([fieldName, direction]) => ({
+                source: {
+                    fieldName: { identifier: fieldName },
+                },
+                direction: direction === 'asc' ? 'ASC' : 'DESC',
+            }),
+        )
         return {
             sqlAst: [{ select }],
             placeholders: context.placeholders,

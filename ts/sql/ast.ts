@@ -98,6 +98,20 @@ export const select: SqlRenderNode<astTypes.SqlSelectNode> = (
     for (const join of node.select.joins ?? []) {
         query.push(...context.renderNode({ join }))
     }
+    if (node.select.order?.length) {
+        const orderedFields: string[] = []
+        for (const { source, direction } of node.select.order ?? []) {
+            if (direction !== 'ASC' && direction !== 'DESC') {
+                throw new Error(
+                    `Deteccted invalid ORDER BY direction querying from table '${tableName}'`,
+                )
+            }
+            orderedFields.push(
+                `${context.renderNodeAsString({ source })} ${direction}`,
+            )
+        }
+        query.push([0, `ORDER BY ${orderedFields.join(', ')}`])
+    }
     last(query)![1] += ';'
     return query
 }
