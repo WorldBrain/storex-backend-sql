@@ -89,6 +89,13 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
 
 if (process.env.RUN_POSTGRESQL_TESTS === 'true') {
     describe('SQL StorageBackend integration tests with PostgreSQL', () => {
+        pg.types.setTypeParser(20, (val) => {
+            const asBigInt = BigInt(val)
+            const fitsNumer =
+                asBigInt >= Number.MIN_SAFE_INTEGER &&
+                asBigInt <= Number.MAX_SAFE_INTEGER
+            return fitsNumer ? Number(asBigInt) : asBigInt
+        })
         testStorageBackend(async (context) => {
             const dbName = `test_${Date.now().toString().replace('.', '_')}`
             const dbConfig = {

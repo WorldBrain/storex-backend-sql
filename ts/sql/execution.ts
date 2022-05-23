@@ -18,13 +18,13 @@ export function getSqlFieldTypes(
     dbCapabilities: DatabaseCapabilties,
 ): SqlSchemaUpdateOptions['fieldTypes'] {
     return {
-        datetime: dbCapabilities.datetimeFields ? 'TIMESTAMP' : 'TEXT',
+        datetime: dbCapabilities.datetimeFields ? 'TIMESTAMPTZ' : 'TEXT',
         boolean: dbCapabilities.booleanFields ? 'BOOLEAN' : 'INTEGER',
         text: 'TEXT',
         int: 'INTEGER',
         float: 'REAL',
         string: 'TEXT',
-        timestamp: dbCapabilities.datetimeFields ? 'TIMESTAMP' : 'TEXT',
+        timestamp: dbCapabilities.datetimeFields ? 'TIMESTAMPTZ' : 'TEXT',
         json: dbCapabilities.jsonFields ? 'JSON' : 'TEXT',
     }
 }
@@ -120,7 +120,9 @@ export function prepareObjectForWrite(
             continue
         }
         if (fieldDefinition.type === 'timestamp') {
-            object[fieldName] = timestampToISO(object[fieldName] as number)
+            object[fieldName] = options.datetimeFields
+                ? new Date(object[fieldName]).toISOString()
+                : timestampToISO(object[fieldName] as number)
         }
         if (fieldDefinition.type === 'json' && !options.jsonFields) {
             object[fieldName] = JSON.stringify(object[fieldName])

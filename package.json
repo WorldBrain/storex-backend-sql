@@ -10,8 +10,8 @@
         "test": "mocha --require ts-node/register \"ts/**/*.test.ts\"",
         "test:watch": "mocha -r source-map-support/register -r ts-node/register \"ts/**/*.test.ts\" --watch --watch-extensions ts",
         "format": "prettier --config prettier.config.js --write '**/*.{ts,js,tsx,jsx,css,md}'",
-        "postgres:start": "sudo docker run --name storex-test-postgres -p 127.0.0.1:5435:5432/tcp -e POSTGRES_PASSWORD=storex -d postgres",
-        "postgres:stop": "sudo docker rm storex-test-postgres"
+        "postgres:start": "yarn postgres stop; sudo docker run --name storex-test-postgres -p 127.0.0.1:5435:5432/tcp -e POSTGRES_PASSWORD=storex -d postgres",
+        "postgres:stop": "sudo docker rm -f storex-test-postgres"
     },
     "husky": {
         "hooks": {

@@ -9,6 +9,7 @@ import {
     ExecuteOperationDatabase,
     FindObjectResult,
     FindObjectsResult,
+    getSqlFieldTypes,
 } from './sql/execution'
 import { DatabaseCapabilties } from './sql/types'
 import { StorageOperation } from './types/storage-operations'
@@ -20,6 +21,7 @@ export interface SqlStorageBackendOptions {
     database: ExecuteOperationDatabase & {
         transaction(f: () => Promise<void>): Promise<void>
     }
+    getSqlFieldTypes?: typeof getSqlFieldTypes
     sqlRenderNodes: SqlRenderNodes
 }
 
