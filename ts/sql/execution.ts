@@ -18,13 +18,13 @@ export function getSqlFieldTypes(
     dbCapabilities: DatabaseCapabilties,
 ): SqlSchemaUpdateOptions['fieldTypes'] {
     return {
-        datetime: dbCapabilities.datetimeFields ? 'DATETIME' : 'TEXT',
-        boolean: 'INTEGER',
+        datetime: dbCapabilities.datetimeFields ? 'TIMESTAMP' : 'TEXT',
+        boolean: dbCapabilities.booleanFields ? 'BOOLEAN' : 'INTEGER',
         text: 'TEXT',
         int: 'INTEGER',
         float: 'REAL',
         string: 'TEXT',
-        timestamp: dbCapabilities.datetimeFields ? 'DATETIME' : 'TEXT',
+        timestamp: dbCapabilities.datetimeFields ? 'TIMESTAMP' : 'TEXT',
         json: dbCapabilities.jsonFields ? 'JSON' : 'TEXT',
     }
 }

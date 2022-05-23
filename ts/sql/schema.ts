@@ -22,9 +22,7 @@ export function getSqlSchemaUpdates(
     for (const [collectionName, collectionDefinition] of Object.entries(
         schemaDiff.collections.added,
     )) {
-        const sqlFields: Array<
-            [name: string, definition: SqlFieldDefinitionNode]
-        > = []
+        const sqlFields: SqlCreateTableNode['createTable']['fields'] = []
 
         let pkFieldName: string | undefined = undefined
         for (const index of collectionDefinition.indices ?? []) {
@@ -38,7 +36,10 @@ export function getSqlSchemaUpdates(
             }
         }
 
-        sqlFields.push([pkFieldName ?? 'id', { ...options.primaryKey }])
+        sqlFields.push([
+            { identifier: pkFieldName ?? 'id' },
+            { ...options.primaryKey },
+        ])
 
         for (const [fieldName, fieldDefinition] of Object.entries(
             collectionDefinition.fields,
@@ -58,7 +59,10 @@ export function getSqlSchemaUpdates(
             const flags: SqlFieldDefinitionNode['flags'] = []
             flags.push(fieldDefinition.optional ? 'NULL' : 'NOT NULL')
 
-            sqlFields.push([fieldName, { type: fieldType, flags }])
+            sqlFields.push([
+                { identifier: fieldName },
+                { type: fieldType, flags },
+            ])
         }
 
         const foreignKeys: SqlForeinKeyNode[] = []
@@ -70,7 +74,7 @@ export function getSqlSchemaUpdates(
                         : relation.singleChildOf
                 const targetAlias = relation.alias ?? `${targetCollection}Id`
                 sqlFields.push([
-                    targetAlias,
+                    { identifier: targetAlias },
                     {
                         type: 'INTEGER',
                         flags: [relation.optional ? 'NULL' : 'NOT NULL'],
@@ -79,16 +83,16 @@ export function getSqlSchemaUpdates(
                 foreignKeys.push({
                     foreignKey: {
                         constraintName: `fk_${collectionName}_${targetAlias}`,
-                        sourceFieldName: targetAlias,
-                        targetTableName: targetCollection,
-                        targetFieldName: `id`,
+                        sourceFieldName: { identifier: targetAlias },
+                        targetTableName: { identifier: targetCollection },
+                        targetFieldName: { identifier: `id` },
                     },
                 })
             }
         }
 
         const createTable: SqlCreateTableNode['createTable'] = {
-            tableName: collectionName,
+            tableName: { identifier: collectionName },
             fields: sqlFields,
         }
         if (foreignKeys.length) {

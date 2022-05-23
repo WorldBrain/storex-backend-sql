@@ -1,4 +1,5 @@
 export interface DatabaseCapabilties {
-  jsonFields: boolean;
-  datetimeFields: boolean;
+    booleanFields: boolean
+    jsonFields: boolean
+    datetimeFields: boolean
 }

@@ -40,28 +40,43 @@ describe('SQL schemas', () => {
         const expectedAst: SqlAst = [
             {
                 createTable: {
-                    tableName: 'user',
+                    tableName: { identifier: 'user' },
                     fields: [
-                        ['id', { type: 'INTEGER', flags: ['PRIMARY KEY'] }],
-                        ['displayName', { type: 'TEXT', flags: ['NOT NULL'] }],
+                        [
+                            { identifier: 'id' },
+                            { type: 'INTEGER', flags: ['PRIMARY KEY'] },
+                        ],
+                        [
+                            { identifier: 'displayName' },
+                            { type: 'TEXT', flags: ['NOT NULL'] },
+                        ],
                     ],
                 },
             },
             {
                 createTable: {
-                    tableName: 'email',
+                    tableName: { identifier: 'email' },
                     fields: [
-                        ['id', { type: 'INTEGER', flags: ['PRIMARY KEY'] }],
-                        ['address', { type: 'TEXT', flags: ['NOT NULL'] }],
-                        ['userId', { type: 'INTEGER', flags: ['NOT NULL'] }],
+                        [
+                            { identifier: 'id' },
+                            { type: 'INTEGER', flags: ['PRIMARY KEY'] },
+                        ],
+                        [
+                            { identifier: 'address' },
+                            { type: 'TEXT', flags: ['NOT NULL'] },
+                        ],
+                        [
+                            { identifier: 'userId' },
+                            { type: 'INTEGER', flags: ['NOT NULL'] },
+                        ],
                     ],
                     foreignKeys: [
                         {
                             foreignKey: {
                                 constraintName: 'fk_email_userId',
-                                sourceFieldName: 'userId',
-                                targetTableName: 'user',
-                                targetFieldName: 'id',
+                                sourceFieldName: { identifier: 'userId' },
+                                targetTableName: { identifier: 'user' },
+                                targetFieldName: { identifier: 'id' },
                             },
                         },
                     ],

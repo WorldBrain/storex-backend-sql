@@ -123,8 +123,10 @@ export interface SqlDeleteNode {
 
 export interface SqlCreateTableNode {
     createTable: {
-        tableName: string
-        fields: Array<[name: string, definition: SqlFieldDefinitionNode]>
+        tableName: SqlIdentifierNode
+        fields: Array<
+            [name: SqlIdentifierNode, definition: SqlFieldDefinitionNode]
+        >
         foreignKeys?: SqlForeinKeyNode[]
     }
 }
@@ -135,9 +137,9 @@ export interface SqlFieldDefinitionNode {
 export interface SqlForeinKeyNode {
     foreignKey: {
         constraintName: string
-        sourceFieldName: string
-        targetTableName: string
-        targetFieldName: string
+        sourceFieldName: SqlIdentifierNode
+        targetTableName: SqlIdentifierNode
+        targetFieldName: SqlIdentifierNode
         onUpdate?: string
         onDelete?: string
     }

@@ -305,19 +305,19 @@ describe('SQL AST', () => {
                 ast: [
                     {
                         createTable: {
-                            tableName: 'myTable',
+                            tableName: { identifier: 'myTable' },
                             fields: [
                                 // ["id", { type: "INTEGER", flags: ["PRIMARY KEY"] }], // SQLite
                                 [
-                                    'id',
+                                    { identifier: 'id' },
                                     { type: 'SERIAL', flags: ['PRIMARY KEY'] },
                                 ], // PostgreSQL
                                 [
-                                    'fieldStr',
+                                    { identifier: 'fieldStr' },
                                     { type: 'TEXT', flags: ['NOT NULL'] },
                                 ],
                                 [
-                                    'parentId',
+                                    { identifier: 'parentId' },
                                     { type: 'INTEGER', flags: ['NOT NULL'] },
                                 ],
                             ],
@@ -325,9 +325,13 @@ describe('SQL AST', () => {
                                 {
                                     foreignKey: {
                                         constraintName: 'fk_myTable_parent',
-                                        sourceFieldName: 'parentId',
-                                        targetTableName: 'parent',
-                                        targetFieldName: 'id',
+                                        sourceFieldName: {
+                                            identifier: 'parentId',
+                                        },
+                                        targetTableName: {
+                                            identifier: 'parent',
+                                        },
+                                        targetFieldName: { identifier: 'id' },
                                         onUpdate: 'CASCADE',
                                         onDelete: 'CASCADE',
                                     },
@@ -335,9 +339,13 @@ describe('SQL AST', () => {
                                 {
                                     foreignKey: {
                                         constraintName: 'fk_myTable_something',
-                                        sourceFieldName: 'somethingId',
-                                        targetTableName: 'something',
-                                        targetFieldName: 'id',
+                                        sourceFieldName: {
+                                            identifier: 'somethingId',
+                                        },
+                                        targetTableName: {
+                                            identifier: 'something',
+                                        },
+                                        targetFieldName: { identifier: 'id' },
                                     },
                                 },
                             ],

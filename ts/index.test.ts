@@ -1,7 +1,7 @@
-import * as expect from 'expect'
 import SQLite3 from 'better-sqlite3'
 import * as pg from 'pg'
 const pgtools = require('pgtools')
+// const pgformat = require('pg-format')
 import { testStorageBackend } from '@worldbrain/storex/lib/index.tests'
 import { SqlStorageBackend, SqlStorageBackendOptions } from '.'
 import { getInitialSchemaDiff } from './schema-diff'
@@ -55,6 +55,7 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
                 foreignKey: renderForeignKeyNode({ withConstraint: false }),
             }
             const dbCapabilties: DatabaseCapabilties = {
+                booleanFields: false,
                 datetimeFields: false,
                 jsonFields: false,
             }
@@ -89,7 +90,6 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
 if (process.env.RUN_POSTGRESQL_TESTS === 'true') {
     describe('SQL StorageBackend integration tests with PostgreSQL', () => {
         testStorageBackend(async (context) => {
-            context.cleanupFunction = async () => {}
             const dbName = `test_${Date.now().toString().replace('.', '_')}`
             const dbConfig = {
                 user: 'postgres',
@@ -106,9 +106,14 @@ if (process.env.RUN_POSTGRESQL_TESTS === 'true') {
                 ...dbConfig,
                 database: dbName,
             })
+            await client.connect()
+            context.cleanupFunction = async () => {
+                await client.end()
+            }
 
             const database: SqlStorageBackendOptions['database'] = {
                 all: async (sql) => {
+                    // console.log('SQL ALL: ', sql)
                     const result = await client.query(sql)
                     return result.rows
                 },
@@ -146,6 +151,7 @@ if (process.env.RUN_POSTGRESQL_TESTS === 'true') {
                 foreignKey: renderForeignKeyNode({ withConstraint: true }),
             }
             const dbCapabilties: DatabaseCapabilties = {
+                booleanFields: true,
                 datetimeFields: true,
                 jsonFields: true,
             }
@@ -160,7 +166,7 @@ if (process.env.RUN_POSTGRESQL_TESTS === 'true') {
                         )
                         const ast = getSqlSchemaUpdates(initialDiff, {
                             primaryKey: {
-                                type: 'INTEGER',
+                                type: 'SERIAL',
                                 flags: ['PRIMARY KEY'],
                             },
                             fieldTypes: getSqlFieldTypes(dbCapabilties),

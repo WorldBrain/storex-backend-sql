@@ -73,10 +73,11 @@ export const renderInsertNode = (options: { withReturns: boolean }) => {
                 context.renderNodeAsString(node.insert.values[fieldName]),
             )
             .join(`, `)
+        const returns = options.withReturns ? ` RETURNING id` : ''
         return [
             [
                 0,
-                `INSERT INTO ${tableName} (${fieldList}) VALUES (${valuesList});`,
+                `INSERT INTO ${tableName} (${fieldList}) VALUES (${valuesList})${returns};`,
             ],
         ]
     }
@@ -260,14 +261,15 @@ export const createTable: SqlRenderNode<astTypes.SqlCreateTableNode> = (
     const numItems = numFields + numForeignKeys
     for (const [
         fieldIndex,
-        [fieldName, fieldDefinition],
+        [fieldIdentifier, fieldDefinition],
     ] of node.createTable.fields.entries()) {
         const isLastLine = fieldIndex + 1 >= numItems
         const tralingComma = !isLastLine ? ',' : ''
         const flags = fieldDefinition.flags.join(' ')
+        const fieldStr = context.renderNodeAsString(fieldIdentifier)
         lines.push([
             0,
-            `${fieldName} ${fieldDefinition.type} ${flags}${tralingComma}`,
+            `${fieldStr} ${fieldDefinition.type} ${flags}${tralingComma}`,
         ])
     }
     for (const [fkIndex, fkNode] of (
@@ -281,7 +283,12 @@ export const createTable: SqlRenderNode<astTypes.SqlCreateTableNode> = (
     }
 
     return [
-        [0, `CREATE TABLE ${node.createTable.tableName} (`],
+        [
+            0,
+            `CREATE TABLE ${context.renderNodeAsString(
+                node.createTable.tableName,
+            )} (`,
+        ],
         ...indentRenderableLines(lines),
         [0, `);`],
     ]
@@ -298,9 +305,13 @@ export const renderForeignKeyNode = (options: { withConstraint: boolean }) => {
             lines.push(`CONSTRAINT ${foreignKey.constraintName}`)
         }
         lines.push(
-            `FOREIGN KEY (${foreignKey.sourceFieldName}) ` +
-                `REFERENCES ${foreignKey.targetTableName} ` +
-                `(${foreignKey.targetFieldName})`,
+            `FOREIGN KEY (${context.renderNodeAsString(
+                foreignKey.sourceFieldName,
+            )}) ` +
+                `REFERENCES ${context.renderNodeAsString(
+                    foreignKey.targetTableName,
+                )} ` +
+                `(${context.renderNodeAsString(foreignKey.targetFieldName)})`,
         )
         if (foreignKey.onUpdate) {
             lines.push(`ON UPDATE ${foreignKey.onUpdate}`)
