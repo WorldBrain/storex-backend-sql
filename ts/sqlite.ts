@@ -14,7 +14,7 @@ import {
 import { getSqlFieldTypes } from './sql/execution'
 import { DatabaseCapabilties } from './sql/types'
 
-export function createSQLiteStorageManager(sqlite: SQLite3.Database) {
+export function createSQLiteStorageBackend(sqlite: SQLite3.Database) {
   const database: SqlStorageBackendOptions['database'] = {
     all: async (sql) => {
       const statement = sqlite.prepare(sql)

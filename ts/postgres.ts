@@ -38,7 +38,7 @@ export async function createPostgresTestDatabase(dbConfig: {
   return { ...dbConfig, database }
 }
 
-export function createPostgresStorageManager(client: pg.Client) {
+export function createPostgresStorageBackend(client: pg.Client) {
   const database: SqlStorageBackendOptions['database'] = {
     all: async (sql) => {
       // console.log('SQL ALL: ', sql)

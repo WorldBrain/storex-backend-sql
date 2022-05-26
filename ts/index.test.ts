@@ -17,8 +17,8 @@ import {
 } from './sql/ast'
 import { ExecuteOperationDatabase, getSqlFieldTypes } from './sql/execution'
 import { DatabaseCapabilties } from './sql/types'
-import { createSQLiteStorageManager } from './sqlite'
-import { createPostgresStorageManager, createPostgresTestDatabase, setupPostgresTypes } from './postgres'
+import { createSQLiteStorageBackend } from './sqlite'
+import { createPostgresStorageBackend, createPostgresTestDatabase, setupPostgresTypes } from './postgres'
 
 if (process.env.SKIP_SQLITE_TESTS !== 'true') {
     describe('SQL StorageBackend integration tests with SQLite3', () => {
@@ -27,7 +27,7 @@ if (process.env.SKIP_SQLITE_TESTS !== 'true') {
             const sqlite = SQLite3(':memory:', {
                 // verbose: (...args: any[]) => console.log("SQL:", ...args)
             })
-            return createSQLiteStorageManager(sqlite)
+            return createSQLiteStorageBackend(sqlite)
         })
     })
 }
@@ -46,7 +46,7 @@ if (process.env.RUN_POSTGRESQL_TESTS === 'true') {
             context.cleanupFunction = async () => {
                 await client.end()
             }
-            return createPostgresStorageManager(client)
+            return createPostgresStorageBackend(client)
         })
     })
 }
