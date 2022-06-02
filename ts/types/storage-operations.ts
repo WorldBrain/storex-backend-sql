@@ -20,7 +20,7 @@ export type OperationWhereValue =
     | LeOperator
     | LtOperator
 export type ComparisonRhs = string | number | boolean | QueryPlaceholder
-export type OrderPair = [field: string, direction: 'asc' | 'desc']
+export type OrderPair = [/* field:  */string, /* direction: */ 'asc' | 'desc']
 export type QueryRelations = QueryRelation[]
 export type OperationInBatch = CreateObjectInBatch | DeleteObjectsByPkInBatch
 export type OperationBatch = OperationInBatch[]

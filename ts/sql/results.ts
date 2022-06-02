@@ -22,7 +22,7 @@ export function transformResultsetToTree(
     const collectionNodes = (nodes[collection] = {});
     return collectionNodes;
   };
-  const getOrCreateNode = (collection: string, object: any): [node: StorageResultTreeNode, created: boolean] => {
+  const getOrCreateNode = (collection: string, object: any): [/* node: */ StorageResultTreeNode, /* created: */ boolean] => {
     const collectionNodes = getCollectionNodes(collection);
     const objectPk = object[options.getPkField(collection)];
     if (collectionNodes[objectPk]) {
@@ -67,7 +67,7 @@ export function transformResultsetToTree(
 }
 
 function getFlattenedRelations(parentCollection: string, relations: QueryRelations) {
-  const flattened: Array<[parentCollection: string, childCollection: string]> = [];
+  const flattened: Array<[/* parentCollection: */ string, /* childCollection: */ string]> = [];
   for (const relation of relations) {
     flattened.push([parentCollection, relation.relation]);
     if (relation.relations) {

@@ -125,7 +125,7 @@ export interface SqlCreateTableNode {
     createTable: {
         tableName: SqlIdentifierNode
         fields: Array<
-            [name: SqlIdentifierNode, definition: SqlFieldDefinitionNode]
+            [/* name:  */SqlIdentifierNode, /* definition: */ SqlFieldDefinitionNode]
         >
         foreignKeys?: SqlForeinKeyNode[]
     }

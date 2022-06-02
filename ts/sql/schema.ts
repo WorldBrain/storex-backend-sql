@@ -52,12 +52,13 @@ export function getSqlSchemaUpdates(
             if (!fieldType) {
                 throw new Error(
                     `Don't know what type '${fieldDefinition.type}' of field ` +
-                        `'${fieldName}' of collection '${collectionName}' translates to in SQL`,
+                    `'${fieldName}' of collection '${collectionName}' translates to in SQL`,
                 )
             }
 
             const flags: SqlFieldDefinitionNode['flags'] = []
-            flags.push(fieldDefinition.optional ? 'NULL' : 'NOT NULL')
+            // flags.push(fieldDefinition.optional ? 'NULL' : 'NOT NULL')
+            flags.push('NOT NULL')
 
             sqlFields.push([
                 { identifier: fieldName },
@@ -77,7 +78,8 @@ export function getSqlSchemaUpdates(
                     { identifier: targetAlias },
                     {
                         type: 'INTEGER',
-                        flags: [relation.optional ? 'NULL' : 'NOT NULL'],
+                        // flags: [relation.optional ? 'NULL' : 'NOT NULL'],
+                        flags: ['NOT NULL'],
                     },
                 ])
                 foreignKeys.push({

@@ -12,7 +12,7 @@ export interface SqlRenderNodes {
     insert: SqlRenderNode<astTypes.SqlInsertNode>
     [nodeTypes: string]: SqlRenderNode
 }
-export type SqlRenderableLine = [indent: number, content: string]
+export type SqlRenderableLine = [/* indent: */ number, /* content: */ string]
 export interface SqlRenderNodeContext {
     renderNode(node: any): SqlRenderableLine[]
     renderNodeAsString(node: any): string
@@ -308,10 +308,10 @@ export const renderForeignKeyNode = (options: { withConstraint: boolean }) => {
             `FOREIGN KEY (${context.renderNodeAsString(
                 foreignKey.sourceFieldName,
             )}) ` +
-                `REFERENCES ${context.renderNodeAsString(
-                    foreignKey.targetTableName,
-                )} ` +
-                `(${context.renderNodeAsString(foreignKey.targetFieldName)})`,
+            `REFERENCES ${context.renderNodeAsString(
+                foreignKey.targetTableName,
+            )} ` +
+            `(${context.renderNodeAsString(foreignKey.targetFieldName)})`,
         )
         if (foreignKey.onUpdate) {
             lines.push(`ON UPDATE ${foreignKey.onUpdate}`)
