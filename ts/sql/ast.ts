@@ -218,7 +218,7 @@ function maybeWithWhere(
 export const renderTestIdentifierNode: SqlRenderNode<
     astTypes.SqlIdentifierNode
 > = (node) => {
-    return [[0, node.identifier]]
+    return [[0, `\`${node.identifier}\``]]
 }
 
 export const renderTestLiteralNode: SqlRenderNode<astTypes.SqlLiteralNode> = (

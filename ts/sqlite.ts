@@ -14,14 +14,21 @@ import {
 import { getSqlFieldTypes } from './sql/execution'
 import { DatabaseCapabilties } from './sql/types'
 
-export function createSQLiteStorageBackend(sqlite: SQLite3.Database) {
+export function createSQLiteStorageBackend(sqlite: SQLite3.Database, options?: {
+  debug?: boolean
+}) {
   const database: SqlStorageBackendOptions['database'] = {
     all: async (sql) => {
+      if (options?.debug) {
+        console.log('SQL ALL:\n', sql)
+      }
       const statement = sqlite.prepare(sql)
       return statement.all()
     },
     run: async (sql) => {
-      // console.log('SQL RUN: ', sql)
+      if (options?.debug) {
+        console.log('SQL RUN:\n', sql)
+      }
       const statement = sqlite.prepare(sql)
       const result = statement.run()
       return { lastInsertRowId: result.lastInsertRowid }
@@ -69,6 +76,9 @@ export function createSQLiteStorageBackend(sqlite: SQLite3.Database) {
           ast,
           nodes: sqlRenderNodes,
         })
+        if (options?.debug) {
+          console.log('SQL SCHEMA:\n\n', sql)
+        }
         sqlite.exec(sql)
       })
     },
