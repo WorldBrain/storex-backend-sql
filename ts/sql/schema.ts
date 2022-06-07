@@ -57,8 +57,7 @@ export function getSqlSchemaUpdates(
             }
 
             const flags: SqlFieldDefinitionNode['flags'] = []
-            // flags.push(fieldDefinition.optional ? 'NULL' : 'NOT NULL')
-            flags.push('NOT NULL')
+            flags.push(fieldDefinition.optional ? 'NULL' : 'NOT NULL')
 
             sqlFields.push([
                 { identifier: fieldName },
