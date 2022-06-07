@@ -159,15 +159,19 @@ export function getPkField(collectionDefinition: CollectionDefinition) {
     return 'id'
 }
 
-export function dateToISO(dateObject: Date) {
+export function dateToISO(dateObject: Date | '$now') {
+    if (dateObject === '$now') {
+        dateObject = new Date()
+    }
     const [date, timeWithZ] = dateObject.toISOString().split('T')
     const [timeWithMs] = timeWithZ.split('Z')
     // const time = timeWithMs.split('.')[0]
     return `${date} ${timeWithMs}`
 }
 
-export function timestampToISO(miliSinceEpoch: number) {
-    return dateToISO(new Date(miliSinceEpoch))
+export function timestampToISO(miliSinceEpoch: number | '$now') {
+    const dateObject = miliSinceEpoch === '$now' ? new Date() : new Date(miliSinceEpoch)
+    return dateToISO(dateObject)
 }
 
 export function isoToDate(isoString: string) {
