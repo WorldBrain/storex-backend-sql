@@ -56,6 +56,7 @@ export function createPostgresStorageBackend(client: pg.Client) {
         await f()
       } catch (e) {
         await client.query('ROLLBACK')
+        throw e
       }
       await client.query('COMMIT')
     },

@@ -39,6 +39,7 @@ export function createSQLiteStorageBackend(sqlite: SQLite3.Database, options?: {
         await f()
       } catch (e) {
         sqlite.exec('ROLLBACK')
+        throw e
       }
       sqlite.exec('COMMIT')
     },
@@ -77,7 +78,7 @@ export function createSQLiteStorageBackend(sqlite: SQLite3.Database, options?: {
           nodes: sqlRenderNodes,
         })
         if (options?.debug) {
-          console.log('SQL SCHEMA:\n\n', sql)
+          console.log(`SQL SCHEMA:\n\n${sql}`)
         }
         sqlite.exec(sql)
       })

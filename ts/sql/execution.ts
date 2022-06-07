@@ -36,9 +36,9 @@ export function getFieldNames(collectionDefinition: CollectionDefinition) {
         if (isChildOfRelation(relation)) {
             relationFieldNames.push(
                 relation.alias ??
-                    ('childOf' in relation
-                        ? relation.childOf
-                        : relation.singleChildOf) + 'Id',
+                ('childOf' in relation
+                    ? relation.childOf
+                    : relation.singleChildOf) + 'Id',
             )
         } else if (isConnectsRelation(relation)) {
             relationFieldNames.push(
@@ -69,12 +69,16 @@ export function getOperationTransformationOptions(
         getFieldType: (collectionName, fieldName) => {
             const collectionDefinition = storageCollections[collectionName]
             const fieldDefinition = collectionDefinition.fields[fieldName]
-            if (!fieldDefinition) {
-                throw new Error(
-                    `No such field in collection '${collectionName}': ${fieldName}`,
-                )
+            if (fieldDefinition) {
+                return fieldDefinition.type
             }
-            return fieldDefinition.type
+            const relationship = collectionDefinition.relationshipsByAlias[fieldName]
+            if (relationship) {
+                return 'int'
+            }
+            throw new Error(
+                `No such field in collection '${collectionName}': ${fieldName}`,
+            )
         },
     }
 }
