@@ -14,33 +14,52 @@ import {
 import { getSqlFieldTypes } from './sql/execution'
 import { DatabaseCapabilties } from './sql/types'
 
+interface SQLiteDebugConfig {
+  queries?: boolean
+  schema?: boolean
+  results?: boolean
+}
+
 export function createSQLiteStorageBackend(sqlite: SQLite3.Database, options?: {
-  debug?: boolean
+  debug?: boolean | SQLiteDebugConfig
 }) {
+  const debug = (type: keyof SQLiteDebugConfig, logByDefault: boolean, what: string, ...args: any[]) => {
+    if (!options?.debug) {
+      return
+    }
+    if (options.debug !== true) {
+      if (!(options.debug[type] ?? logByDefault)) {
+        return
+      }
+    }
+    console.log(`${what}:\n`, ...args)
+  }
   const database: SqlStorageBackendOptions['database'] = {
     all: async (sql) => {
-      if (options?.debug) {
-        console.log('SQL ALL:\n', sql)
-      }
+      debug('queries', true, 'SQL ALL', sql)
       const statement = sqlite.prepare(sql)
-      return statement.all()
+      const result = statement.all()
+      debug('results', false, 'SQL ALL result', result)
+      return result
     },
     run: async (sql) => {
-      if (options?.debug) {
-        console.log('SQL RUN:\n', sql)
-      }
+      debug('queries', true, 'SQL RUN', sql)
       const statement = sqlite.prepare(sql)
       const result = statement.run()
+      debug('results', false, 'SQL RUN result', result)
       return { lastInsertRowId: result.lastInsertRowid }
     },
     transaction: async (f) => {
+      debug('queries', true, 'SQL EXEC', 'BEGIN')
       sqlite.exec('BEGIN')
       try {
         await f()
       } catch (e) {
+        debug('queries', true, 'SQL EXEC', 'ROLLBACK')
         sqlite.exec('ROLLBACK')
         throw e
       }
+      debug('queries', true, 'SQL EXEC', 'COMMIT')
       sqlite.exec('COMMIT')
     },
   }
@@ -57,7 +76,7 @@ export function createSQLiteStorageBackend(sqlite: SQLite3.Database, options?: {
     datetimeFields: false,
     jsonFields: false,
   }
-  return new SqlStorageBackend({
+  const backend = new SqlStorageBackend({
     database,
     dbCapabilities: dbCapabilties,
     sqlRenderNodes,
@@ -77,11 +96,10 @@ export function createSQLiteStorageBackend(sqlite: SQLite3.Database, options?: {
           ast,
           nodes: sqlRenderNodes,
         })
-        if (options?.debug) {
-          console.log(`SQL SCHEMA:\n\n${sql}`)
-        }
+        debug('schema', false, `SQL SCHEMA:\n\n${sql}`)
         sqlite.exec(sql)
       })
     },
   })
+  return backend
 }
