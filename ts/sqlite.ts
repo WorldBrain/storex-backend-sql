@@ -19,47 +19,54 @@ interface SQLiteDebugConfig {
   schema?: boolean
   results?: boolean
 }
+const DEBUG_BY_DEFAULT: { [Key in keyof SQLiteDebugConfig]: boolean } = {
+  queries: true,
+  schema: false,
+  results: false,
+}
 
 export function createSQLiteStorageBackend(sqlite: SQLite3.Database, options?: {
   debug?: boolean | SQLiteDebugConfig
 }) {
-  const debug = (type: keyof SQLiteDebugConfig, logByDefault: boolean, what: string, ...args: any[]) => {
+  const debug = (type: keyof SQLiteDebugConfig, what: string, ...args: any[]) => {
     if (!options?.debug) {
       return
     }
     if (options.debug !== true) {
-      if (!(options.debug[type] ?? logByDefault)) {
+      if (!(options.debug[type] ?? DEBUG_BY_DEFAULT[type])) {
         return
       }
     }
-    console.log(`${what}:\n`, ...args)
+    if (DEBUG_BY_DEFAULT[type]) {
+      console.log(`${what}:\n`, ...args)
+    }
   }
   const database: SqlStorageBackendOptions['database'] = {
     all: async (sql) => {
-      debug('queries', true, 'SQL ALL', sql)
+      debug('queries', 'SQL ALL', sql)
       const statement = sqlite.prepare(sql)
       const result = statement.all()
-      debug('results', false, 'SQL ALL result', result)
+      debug('results', 'SQL ALL result', result)
       return result
     },
     run: async (sql) => {
-      debug('queries', true, 'SQL RUN', sql)
+      debug('queries', 'SQL RUN', sql)
       const statement = sqlite.prepare(sql)
       const result = statement.run()
-      debug('results', false, 'SQL RUN result', result)
+      debug('results', 'SQL RUN result', result)
       return { lastInsertRowId: result.lastInsertRowid }
     },
     transaction: async (f) => {
-      debug('queries', true, 'SQL EXEC', 'BEGIN')
+      debug('queries', 'SQL EXEC', 'BEGIN')
       sqlite.exec('BEGIN')
       try {
         await f()
       } catch (e) {
-        debug('queries', true, 'SQL EXEC', 'ROLLBACK')
+        debug('queries', 'SQL EXEC', 'ROLLBACK')
         sqlite.exec('ROLLBACK')
         throw e
       }
-      debug('queries', true, 'SQL EXEC', 'COMMIT')
+      debug('queries', 'SQL EXEC', 'COMMIT')
       sqlite.exec('COMMIT')
     },
   }
@@ -96,7 +103,7 @@ export function createSQLiteStorageBackend(sqlite: SQLite3.Database, options?: {
           ast,
           nodes: sqlRenderNodes,
         })
-        debug('schema', false, `SQL SCHEMA:\n\n${sql}`)
+        debug('schema', `SQL SCHEMA:\n\n${sql}`)
         sqlite.exec(sql)
       })
     },

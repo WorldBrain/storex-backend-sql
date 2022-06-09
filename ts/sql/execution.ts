@@ -139,14 +139,19 @@ export function prepareStorageOperation(
     storageCollections: StorageCollectionsDefinition,
     dbCapabilities: DatabaseCapabilties,
 ) {
-    if (operation.operation == 'createObject') {
+    if (
+        operation.operation == 'createObject' ||
+        operation.operation === "updateObjects" ||
+        operation.operation === "updateObject"
+    ) {
         const collectionDefinition = storageCollections[operation.collection]
         prepareObjectForWrite(
-            operation.object,
+            'object' in operation ? operation.object : operation.updates,
             collectionDefinition.fields,
             dbCapabilities,
         )
-    } else if (
+    }
+    if (
         operation.operation === 'findObject' ||
         operation.operation === 'findObjects' ||
         operation.operation === 'updateObjects' ||
