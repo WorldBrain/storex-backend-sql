@@ -1,4 +1,5 @@
-import { isPlainObject, last } from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
+import last from 'lodash/last'
 import { timestampToISO } from '../utils'
 import * as astTypes from './ast-types'
 
@@ -215,9 +216,9 @@ function maybeWithWhere(
     return lines
 }
 
-export const renderTestIdentifierNode: SqlRenderNode<
-    astTypes.SqlIdentifierNode
-> = (node) => {
+export const renderTestIdentifierNode: SqlRenderNode<astTypes.SqlIdentifierNode> = (
+    node,
+) => {
     return [[0, `\`${node.identifier}\``]]
 }
 
@@ -308,10 +309,10 @@ export const renderForeignKeyNode = (options: { withConstraint: boolean }) => {
             `FOREIGN KEY (${context.renderNodeAsString(
                 foreignKey.sourceFieldName,
             )}) ` +
-            `REFERENCES ${context.renderNodeAsString(
-                foreignKey.targetTableName,
-            )} ` +
-            `(${context.renderNodeAsString(foreignKey.targetFieldName)})`,
+                `REFERENCES ${context.renderNodeAsString(
+                    foreignKey.targetTableName,
+                )} ` +
+                `(${context.renderNodeAsString(foreignKey.targetFieldName)})`,
         )
         if (foreignKey.onUpdate) {
             lines.push(`ON UPDATE ${foreignKey.onUpdate}`)
