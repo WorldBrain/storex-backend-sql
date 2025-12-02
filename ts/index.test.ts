@@ -2,7 +2,7 @@ import SQLite3 from 'better-sqlite3'
 import * as pg from 'pg'
 const pgtools = require('pgtools')
 // const pgformat = require('pg-format')
-import { testStorageBackend } from '@worldbrain/storex/lib/index.tests'
+import { testStorageBackend } from '@worldbrain/storex/ts/index.tests'
 import { SqlStorageBackend, SqlStorageBackendOptions } from '.'
 import { getInitialSchemaDiff } from './schema-diff'
 import { getSqlSchemaUpdates } from './sql/schema'
@@ -18,12 +18,16 @@ import {
 import { ExecuteOperationDatabase, getSqlFieldTypes } from './sql/execution'
 import { DatabaseCapabilties } from './sql/types'
 import { createSQLiteStorageBackend } from './sqlite'
-import { createPostgresStorageBackend, createPostgresTestDatabase, setupPostgresTypes } from './postgres'
+import {
+    createPostgresStorageBackend,
+    createPostgresTestDatabase,
+    setupPostgresTypes,
+} from './postgres'
 
 if (process.env.SKIP_SQLITE_TESTS !== 'true') {
     describe('SQL StorageBackend integration tests with SQLite3', () => {
         testStorageBackend(async (context) => {
-            context.cleanupFunction = async () => { }
+            context.cleanupFunction = async () => {}
             const sqlite = SQLite3(':memory:', {
                 // verbose: (...args: any[]) => console.log("SQL:", ...args)
             })

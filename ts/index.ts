@@ -1,6 +1,6 @@
 import { StorageRegistry } from '@worldbrain/storex'
-import * as backend from '@worldbrain/storex/lib/types/backend'
-import { StorageBackendFeatureSupport } from '@worldbrain/storex/lib/types/backend-features'
+import * as backend from '@worldbrain/storex/ts/types/backend'
+import { StorageBackendFeatureSupport } from '@worldbrain/storex/ts/types/backend-features'
 import { SqlRenderNodes } from './sql/ast'
 import {
     CountObjectsResult,
